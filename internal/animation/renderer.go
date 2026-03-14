@@ -93,7 +93,10 @@ func (r *Renderer) render() {
 			output = append(output, []rune("\x1b["+itoa(y+1)+";"+itoa(x+1)+"H")...)
 
 			neighbors := r.countNeighbors(x, y)
-			color := pickColor(neighbors)
+			maxNeighbors := r.maxPossibleNeighbors(x, y)
+			// Normalize neighbor count to 0-8 scale
+			normalized := neighbors * 8 / maxNeighbors
+			color := pickColor(normalized)
 
 			output = append(output, []rune("\x1b["+color+"m")...)
 			output = append(output, char)
@@ -133,6 +136,24 @@ func (r *Renderer) countNeighbors(x, y int) int {
 		}
 	}
 	return count
+}
+
+func (r *Renderer) maxPossibleNeighbors(x, y int) int {
+	maxNeighbors := 0
+	height := len(r.buffer)
+	width := len(r.buffer[0])
+	for dy := -1; dy <= 1; dy++ {
+		for dx := -1; dx <= 1; dx++ {
+			if dx == 0 && dy == 0 {
+				continue
+			}
+			nx, ny := x+dx, y+dy
+			if ny >= 0 && ny < height && nx >= 0 && nx < width {
+				maxNeighbors++
+			}
+		}
+	}
+	return maxNeighbors
 }
 
 func itoa(n int) string {
