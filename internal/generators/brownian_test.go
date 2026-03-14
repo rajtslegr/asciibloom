@@ -43,8 +43,11 @@ func TestNewBrownianTree(t *testing.T) {
 			if bt.grid == nil {
 				t.Error("grid is nil")
 			}
-			if len(bt.grid) != tt.height {
-				t.Errorf("grid height = %d, want %d", len(bt.grid), tt.height)
+			if bt.grid.Height() != tt.height {
+				t.Errorf("grid height = %d, want %d", bt.grid.Height(), tt.height)
+			}
+			if bt.grid.Width() != tt.width {
+				t.Errorf("grid width = %d, want %d", bt.grid.Width(), tt.width)
 			}
 		})
 	}
@@ -87,12 +90,15 @@ func TestBrownianTreeReset(t *testing.T) {
 
 	// Grid should have seed points
 	hasNonZero := false
-	for y := range bt.grid {
-		for x := range bt.grid[y] {
-			if bt.grid[y][x] > 0 {
+	for y := 0; y < bt.grid.Height(); y++ {
+		for x := 0; x < bt.grid.Width(); x++ {
+			if bt.grid.Get(x, y) > 0 {
 				hasNonZero = true
 				break
 			}
+		}
+		if hasNonZero {
+			break
 		}
 	}
 	if !hasNonZero {

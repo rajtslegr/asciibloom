@@ -4,17 +4,41 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"asciibloom/internal/animation"
+	"asciibloom/internal/core"
 	"asciibloom/internal/generators"
+
+	"github.com/spf13/cobra"
 )
 
-// Execute runs the main animation loop with proper signal handling and cleanup.
-// It returns an error if terminal initialization or animation fails.
+var mode string
+
+var rootCmd = &cobra.Command{
+	Use:   "asciibloom",
+	Short: "Terminal ASCII art generator with organic growth patterns",
+	Long: `asciibloom generates organic ASCII art animations directly in your terminal.
+
+It supports multiple visualization modes:
+  - brownian: Diffusion-limited aggregation creating tree-like structures
+  - flow: Flow field simulation with particles following vector fields`,
+	RunE: runAnimation,
+}
+
+func init() {
+	rootCmd.Flags().StringVarP(&mode, "mode", "m", "", "Animation mode: brownian or flow (random if not specified)")
+}
+
+// Execute runs the root command.
 func Execute() error {
+	return rootCmd.Execute()
+}
+
+func runAnimation(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -27,7 +51,8 @@ func Execute() error {
 	}
 	defer term.Restore()
 
-	generator := generators.NewBrownianTree(term.Width(), term.Height())
+	genType := parseMode(mode)
+	generator := createGenerator(genType, term.Width(), term.Height())
 	renderer := animation.NewRenderer(term, generator)
 
 	done := make(chan error, 1)
@@ -46,5 +71,36 @@ func Execute() error {
 		return nil
 	case err := <-done:
 		return err
+	}
+}
+
+func parseMode(m string) core.GeneratorType {
+	switch m {
+	case "flow", "flowfield":
+		return core.TypeFlowField
+	case "brownian", "brown":
+		return core.TypeBrownian
+	default:
+		// Random mode when not specified
+		if rand.Intn(2) == 0 {
+			return core.TypeBrownian
+		}
+		return core.TypeFlowField
+	}
+}
+
+func createGenerator(genType core.GeneratorType, width, height int) interface {
+	Step() bool
+	Render(buffer [][]rune)
+	ClusterSize() int
+	PostProcess()
+} {
+	switch genType {
+	case core.TypeFlowField:
+		return generators.NewFlowField(width, height)
+	case core.TypeBrownian:
+		return generators.NewBrownianTree(width, height)
+	default:
+		return generators.NewBrownianTree(width, height)
 	}
 }

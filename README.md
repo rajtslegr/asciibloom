@@ -1,24 +1,19 @@
 # asciibloom
 
-Terminal ASCII art generator featuring organic growth patterns through diffusion-limited aggregation.
+Terminal ASCII art with organic patterns.
 
-## Commands
+## Build
 
 ```bash
-make build          # Build the binary
-make all            # Run checks and build (default)
-make test           # Run tests with race detector
-make check          # Run all checks (fmt, vet, test)
-make install-tools  # Install golangci-lint and gofumpt (one-time)
-make lint           # Run all linters
-make fmt            # Format code with gofumpt
-make vet            # Run go vet
-make clean          # Remove build artifacts
+make build
 ```
 
 ## Usage
 
 ```bash
-make build
-./asciibloom
+./asciibloom              # Random mode
+./asciibloom -m brownian  # Brownian tree
+./asciibloom -m flow      # Flow field
 ```
+
+Press `Ctrl+C` to exit.

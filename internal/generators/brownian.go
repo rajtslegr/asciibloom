@@ -4,11 +4,13 @@ import (
 	"crypto/rand"
 	"math"
 	mathrand "math/rand"
+
+	"asciibloom/internal/core"
 )
 
 // BrownianTree generates a Brownian tree pattern using particle aggregation.
 type BrownianTree struct {
-	grid          [][]int
+	grid          *core.Grid
 	width         int
 	height        int
 	particleCount int
@@ -41,10 +43,7 @@ func NewBrownianTree(width, height int) *BrownianTree {
 }
 
 func (b *BrownianTree) init() {
-	b.grid = make([][]int, b.height)
-	for y := range b.grid {
-		b.grid[y] = make([]int, b.width)
-	}
+	b.grid = core.NewGrid(b.width, b.height)
 
 	b.seedPoints = make([][2]int, 0)
 	seeds := 1 + b.rng.Intn(3)
@@ -69,7 +68,7 @@ func (b *BrownianTree) init() {
 	b.minY, b.maxY = b.height, 0
 	for y := 0; y < b.height; y++ {
 		for x := 0; x < b.width; x++ {
-			if b.grid[y][x] > 0 {
+			if b.grid.Get(x, y) > 0 {
 				if x < b.minX {
 					b.minX = x
 				}
@@ -90,11 +89,7 @@ func (b *BrownianTree) init() {
 }
 
 func (b *BrownianTree) reset() {
-	for y := range b.grid {
-		for x := range b.grid[y] {
-			b.grid[y][x] = 0
-		}
-	}
+	b.grid.Clear()
 	b.particleCount = 0
 	b.minX, b.maxX = b.width, 0
 	b.minY, b.maxY = b.height, 0
@@ -110,29 +105,18 @@ func (b *BrownianTree) reset() {
 }
 
 func (b *BrownianTree) set(x, y, val int) {
-	if x >= 0 && x < b.width && y >= 0 && y < b.height && b.grid[y][x] < val {
-		b.grid[y][x] = val
+	if x >= 0 && x < b.width && y >= 0 && y < b.height && b.grid.Get(x, y) < val {
+		b.grid.Set(x, y, val)
 		b.particleCount++
 	}
 }
 
 func (b *BrownianTree) get(x, y int) int {
-	if x < 0 || x >= b.width || y < 0 || y >= b.height {
-		return 0
-	}
-	return b.grid[y][x]
+	return b.grid.Get(x, y)
 }
 
 func (b *BrownianTree) neighbors(x, y int) int {
-	count := 0
-	for dy := -1; dy <= 1; dy++ {
-		for dx := -1; dx <= 1; dx++ {
-			if (dx != 0 || dy != 0) && b.get(x+dx, y+dy) > 0 {
-				count++
-			}
-		}
-	}
-	return count
+	return b.grid.CountNeighbors(x, y)
 }
 
 func (b *BrownianTree) center() (float64, float64) {
@@ -236,30 +220,14 @@ func (b *BrownianTree) Step() bool {
 func (b *BrownianTree) Render(buffer [][]rune) {
 	for y := 0; y < len(buffer) && y < b.height; y++ {
 		for x := 0; x < len(buffer[y]) && x < b.width; x++ {
-			v := b.grid[y][x]
+			v := b.grid.Get(x, y)
 			if v == 0 {
 				buffer[y][x] = ' '
 				continue
 			}
 
 			n := b.neighbors(x, y)
-
-			var ch rune
-			switch {
-			case n >= 6:
-				ch = 'O'
-			case n >= 4:
-				ch = 'o'
-			case n >= 3:
-				ch = '*'
-			case n >= 2:
-				ch = ':'
-			case v >= 5:
-				ch = '+'
-			default:
-				ch = '.'
-			}
-			buffer[y][x] = ch
+			buffer[y][x] = core.CharForIntensity(n, v)
 		}
 	}
 }
