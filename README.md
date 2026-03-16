@@ -15,8 +15,9 @@ go build .
 ```bash
 ./asciibloom                # Random mode
 ./asciibloom -m brownian    # Brownian tree
-./asciibloom -m flow        # Flow field
+./asciibloom -m flowfield   # Flow field
 ./asciibloom -m mandelbrot  # Mandelbrot set
+./asciibloom -m reaction    # Gray-Scott reaction-diffusion
 ```
 
 Press `Ctrl+C` to exit.
@@ -24,5 +25,6 @@ Press `Ctrl+C` to exit.
 ## Modes
 
 - **brownian** - Diffusion-limited aggregation creating tree-like structures
-- **flow** - Flow field simulation with particles following vector fields  
+- **flowfield** - Flow field simulation with particles following vector fields  
 - **mandelbrot** - Mandelbrot set fractal with animated boundary edges
+- **reaction** - Gray-Scott reaction-diffusion creating organic patterns (coral, spots, maze, waves)

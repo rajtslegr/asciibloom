@@ -5,9 +5,10 @@ package core
 type GeneratorType string
 
 const (
-	TypeBrownian   GeneratorType = "brownian"
-	TypeFlowField  GeneratorType = "flow"
-	TypeMandelbrot GeneratorType = "mandelbrot"
+	TypeBrownian          GeneratorType = "brownian"
+	TypeFlowField         GeneratorType = "flowfield"
+	TypeMandelbrot        GeneratorType = "mandelbrot"
+	TypeReactionDiffusion GeneratorType = "reaction"
 )
 
 // Grid provides common grid operations for generators.

@@ -25,13 +25,14 @@ var rootCmd = &cobra.Command{
 
 It supports multiple visualization modes:
   - brownian: Diffusion-limited aggregation creating tree-like structures
-  - flow: Flow field simulation with particles following vector fields
-  - mandelbrot: Mandelbrot set fractal visualization`,
+  - flowfield: Flow field simulation with particles following vector fields
+  - mandelbrot: Mandelbrot set fractal visualization
+  - reaction: Gray-Scott reaction-diffusion creating organic patterns`,
 	RunE: runAnimation,
 }
 
 func init() {
-	rootCmd.Flags().StringVarP(&mode, "mode", "m", "", "Animation mode: brownian, flow, or mandelbrot (random if not specified)")
+	rootCmd.Flags().StringVarP(&mode, "mode", "m", "", "Animation mode: brownian, flowfield, mandelbrot, or reaction (random if not specified)")
 }
 
 // Execute runs the root command.
@@ -77,22 +78,26 @@ func runAnimation(cmd *cobra.Command, args []string) error {
 
 func parseMode(m string) core.GeneratorType {
 	switch m {
-	case "flow", "flowfield":
+	case "flowfield":
 		return core.TypeFlowField
 	case "brownian", "brown":
 		return core.TypeBrownian
 	case "mandelbrot", "mandel":
 		return core.TypeMandelbrot
+	case "reaction", "grayscott", "rd":
+		return core.TypeReactionDiffusion
 	default:
 		// Random mode when not specified
-		r := rand.Intn(3)
+		r := rand.Intn(4)
 		switch r {
 		case 0:
 			return core.TypeBrownian
 		case 1:
 			return core.TypeFlowField
+		case 2:
+			return core.TypeMandelbrot
 		}
-		return core.TypeMandelbrot
+		return core.TypeReactionDiffusion
 	}
 }
 
@@ -109,6 +114,8 @@ func createGenerator(genType core.GeneratorType, width, height int) interface {
 		return generators.NewBrownianTree(width, height)
 	case core.TypeMandelbrot:
 		return generators.NewMandelbrot(width, height)
+	case core.TypeReactionDiffusion:
+		return generators.NewReactionDiffusion(width, height)
 	default:
 		return generators.NewBrownianTree(width, height)
 	}
